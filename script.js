@@ -25,6 +25,11 @@
   const titleError = document.getElementById('title-error');
   const authorError = document.getElementById('author-error');
 
+  const ratingInput = document.getElementById('book-rating');
+  const ratingTextPreview = document.getElementById('rating-text-preview');
+  const starPicker = document.getElementById('star-picker');
+  const starBtns = document.querySelectorAll('.star-rating-select .star-btn');
+
   const searchInput = document.getElementById('search-input');
   const clearSearchBtn = document.getElementById('clear-search-btn');
 
@@ -53,6 +58,13 @@
         books = JSON.parse(stored);
         if (!Array.isArray(books)) {
           books = [];
+        } else {
+          // Ensure all books have a valid rating (1 to 5)
+          books.forEach((book) => {
+            if (typeof book.rating !== 'number' || book.rating < 1 || book.rating > 5) {
+              book.rating = 5;
+            }
+          });
         }
       } else {
         books = [];
@@ -89,11 +101,51 @@
   }
 
   /**
+   * Set rating value in form and update visual star display
+   */
+  function setFormRating(value) {
+    const numericVal = Math.min(Math.max(parseInt(value, 10) || 5, 1), 5);
+    if (ratingInput) {
+      ratingInput.value = numericVal;
+    }
+    if (ratingTextPreview) {
+      ratingTextPreview.textContent = `${numericVal} of 5 stars`;
+    }
+    starBtns.forEach((btn) => {
+      const btnVal = parseInt(btn.dataset.value, 10);
+      if (btnVal <= numericVal) {
+        btn.classList.add('selected');
+      } else {
+        btn.classList.remove('selected');
+      }
+      btn.classList.remove('hovered');
+    });
+  }
+
+  /**
+   * Temporary preview on hover for star rating in form
+   */
+  function previewFormRating(hoverValue) {
+    starBtns.forEach((btn) => {
+      const btnVal = parseInt(btn.dataset.value, 10);
+      if (btnVal <= hoverValue) {
+        btn.classList.add('hovered');
+      } else {
+        btn.classList.remove('hovered');
+      }
+    });
+    if (ratingTextPreview) {
+      ratingTextPreview.textContent = `${hoverValue} of 5 stars`;
+    }
+  }
+
+  /**
    * Reset form and clear edit state
    */
   function resetForm() {
     bookForm.reset();
     editBookIdInput.value = '';
+    setFormRating(5);
     formHeading.textContent = 'Add a New Book';
     saveBtnText.textContent = 'Add Book';
     saveBtnIcon.textContent = '➕';
@@ -119,6 +171,7 @@
     titleInput.value = book.title;
     authorInput.value = book.author;
     statusCheckbox.checked = Boolean(book.isRead);
+    setFormRating(book.rating || 5);
 
     formHeading.textContent = 'Edit Book';
     saveBtnText.textContent = 'Update Book';
@@ -191,6 +244,7 @@
     const title = titleInput.value.trim();
     const author = authorInput.value.trim();
     const isRead = statusCheckbox.checked;
+    const rating = Math.min(Math.max(parseInt(ratingInput.value, 10) || 5, 1), 5);
     const editId = editBookIdInput.value;
 
     if (editId) {
@@ -200,6 +254,7 @@
         books[index].title = title;
         books[index].author = author;
         books[index].isRead = isRead;
+        books[index].rating = rating;
         books[index].updatedAt = Date.now();
       }
     } else {
@@ -209,6 +264,7 @@
         title,
         author,
         isRead,
+        rating,
         createdAt: Date.now()
       };
       books.unshift(newBook); // Put new books at the top of the list
@@ -259,6 +315,25 @@
   }
 
   /**
+   * Update rating for a book directly (e.g. from card star click)
+   */
+  function updateBookRating(bookId, newRating) {
+    const book = books.find((b) => b.id === bookId);
+    if (!book) return;
+
+    book.rating = Math.min(Math.max(parseInt(newRating, 10) || 5, 1), 5);
+    book.updatedAt = Date.now();
+
+    // If this book is currently populated in the edit form, sync form rating
+    if (editBookIdInput.value === bookId) {
+      setFormRating(book.rating);
+    }
+
+    saveBooks();
+    render();
+  }
+
+  /**
    * Create HTML element for a book card safely
    */
   function createBookCardElement(book) {
@@ -286,8 +361,38 @@
     authorEl.innerHTML = `by <span></span>`;
     authorEl.querySelector('span').textContent = book.author;
 
+    // Star Rating on Card
+    const ratingContainer = document.createElement('div');
+    ratingContainer.className = 'book-rating';
+    ratingContainer.setAttribute('aria-label', `Rating: ${book.rating} of 5 stars`);
+
+    const starsDiv = document.createElement('div');
+    starsDiv.className = 'card-stars';
+
+    for (let i = 1; i <= 5; i++) {
+      const starBtn = document.createElement('button');
+      starBtn.type = 'button';
+      starBtn.className = `card-star-btn ${i <= book.rating ? 'filled' : ''}`;
+      starBtn.innerHTML = '★';
+      starBtn.title = `Rate ${i} of 5 stars`;
+      starBtn.setAttribute('aria-label', `${i} star${i > 1 ? 's' : ''}`);
+      starBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        updateBookRating(book.id, i);
+      });
+      starsDiv.appendChild(starBtn);
+    }
+
+    const scoreSpan = document.createElement('span');
+    scoreSpan.className = 'rating-score';
+    scoreSpan.textContent = `${book.rating}/5`;
+
+    ratingContainer.appendChild(starsDiv);
+    ratingContainer.appendChild(scoreSpan);
+
     details.appendChild(titleEl);
     details.appendChild(authorEl);
+    details.appendChild(ratingContainer);
 
     // Status Badge (click toggles read/unread)
     const statusBadge = document.createElement('button');
@@ -398,6 +503,26 @@
     // Cancel edit
     cancelEditBtn.addEventListener('click', resetForm);
 
+    // Star rating picker in form
+    starBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const val = parseInt(btn.dataset.value, 10);
+        setFormRating(val);
+      });
+
+      btn.addEventListener('mouseenter', () => {
+        const val = parseInt(btn.dataset.value, 10);
+        previewFormRating(val);
+      });
+    });
+
+    if (starPicker) {
+      starPicker.addEventListener('mouseleave', () => {
+        const currentVal = parseInt(ratingInput.value, 10) || 5;
+        setFormRating(currentVal);
+      });
+    }
+
     // Input validation clearing as user types
     titleInput.addEventListener('input', () => {
       if (titleInput.value.trim()) {
@@ -453,6 +578,7 @@
    */
   function init() {
     loadBooks();
+    setFormRating(5);
     setupEventListeners();
     render();
   }

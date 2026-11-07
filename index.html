@@ -65,6 +65,20 @@
             <span class="field-error" id="author-error">Please enter the author's name</span>
           </div>
 
+          <div class="form-group rating-form-group">
+            <label id="rating-label">
+              Rating: <span id="rating-text-preview" class="rating-text-preview">5 of 5 stars</span>
+            </label>
+            <div class="star-rating-select" id="star-picker" role="radiogroup" aria-labelledby="rating-label">
+              <button type="button" class="star-btn selected" data-value="1" aria-label="1 star">★</button>
+              <button type="button" class="star-btn selected" data-value="2" aria-label="2 stars">★</button>
+              <button type="button" class="star-btn selected" data-value="3" aria-label="3 stars">★</button>
+              <button type="button" class="star-btn selected" data-value="4" aria-label="4 stars">★</button>
+              <button type="button" class="star-btn selected" data-value="5" aria-label="5 stars">★</button>
+              <input type="hidden" id="book-rating" value="5">
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="checkbox-container" for="book-status">
               <input type="checkbox" id="book-status">

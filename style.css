@@ -224,6 +224,55 @@ input[type="text"].input-invalid {
   display: block;
 }
 
+/* ==========================================================================
+   Star Rating Input (Form)
+   ========================================================================== */
+.rating-form-group {
+  margin-bottom: 1.15rem;
+}
+
+.rating-text-preview {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--warning);
+  margin-left: 0.35rem;
+}
+
+.star-rating-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 1.85rem;
+  line-height: 1;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), transform 0.15s ease;
+  user-select: none;
+}
+
+.star-btn:hover,
+.star-btn:focus-visible {
+  outline: none;
+  transform: scale(1.18);
+}
+
+.star-btn.selected,
+.star-btn.hovered {
+  color: #f59e0b;
+}
+
+.star-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+
 /* Custom Checkbox */
 .checkbox-container {
   display: flex;
@@ -470,6 +519,46 @@ input[type="text"].input-invalid {
 .book-author span {
   font-weight: 500;
   color: var(--text-main);
+}
+
+/* Book Rating on Card */
+.book-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+}
+
+.card-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.card-star-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: transform 0.12s ease, color var(--transition);
+}
+
+.card-star-btn.filled {
+  color: #f59e0b;
+}
+
+.card-star-btn:hover {
+  transform: scale(1.25);
+  color: #d97706;
+}
+
+.rating-score {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 /* Status Badge & Toggle */
